@@ -27,16 +27,16 @@ class ColorPair
     int color;
     String name;
 
-    int blue;
-    int red;
-    int green;
+    private int blue;
+    private int red;
+    private int green;
 
     public ColorPair(int aColor, String aName)
     {
         color = aColor;
         name = aName;
     }
-    public ColorPair(String aLine)
+    ColorPair(String aLine)
     {
         String[] tokens = aLine.split("=");
         name = tokens[0];
@@ -47,7 +47,7 @@ class ColorPair
         green = Color.green(color);
     }
 
-    public boolean IsEqual(int aColor, int aPrecision)
+    boolean IsEqual(int aColor, int aPrecision)
     {
         if (aColor == color)
             return true;
@@ -94,7 +94,7 @@ class ColorSpace
         }
     }
 
-    public void load(Context context, InputStream stream) throws IOException
+    void load(Context context, InputStream stream) throws IOException
     {
         list.clear();
         try
@@ -123,7 +123,7 @@ class ColorSpace
         }
     }
 
-    public ColorPair Find(int aColor, int aPrecision)
+    ColorPair Find(int aColor, int aPrecision)
     {
         int currPrecision = 0;
         while (currPrecision <= aPrecision)
@@ -145,5 +145,10 @@ class ColorSpace
     public ColorPair Find(int aColor)
     {
         return Find(aColor, 0);
+    }
+
+    int Length()
+    {
+        return list.size();
     }
 }

@@ -112,12 +112,17 @@ public class MainActivity extends Activity
         }
         catch (IOException e)
         {
-            showDialog("File with color definitions not found.");
+            //showDialog("File with color definitions not found.");
             //finish();
         }
 
+        if (colorSpace.Length() == 0)
+        {
+            showDialog("Color definitions not found.");
+            finish();
+        }
 
-        sv = (SurfaceView) findViewById(R.id.surfaceView);
+        sv = findViewById(R.id.surfaceView);
         holder = sv.getHolder();
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
