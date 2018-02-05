@@ -24,8 +24,8 @@ import java.util.ListIterator;
  */
 class ColorPair
 {
-    int color;
-    String name;
+    final int color;
+    final String name;
 
     private int blue;
     private int red;
@@ -72,7 +72,7 @@ class ColorSpace
 
     private ColorSpace()
     {
-        list = new ArrayList<ColorPair>();
+        list = new ArrayList<>();
     }
 
     private static ArrayList<ColorPair> list;

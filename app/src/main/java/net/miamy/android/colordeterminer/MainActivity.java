@@ -41,41 +41,41 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity
 {
-    ColorSpace colorSpace;
-    SurfaceView sv;
-    SurfaceHolder holder;
-    HolderCallback holderCallback;
-    Camera.PreviewCallback previewCallback;
+    private ColorSpace colorSpace;
+    private SurfaceView sv;
+    private SurfaceHolder holder;
+    private HolderCallback holderCallback;
+    private Camera.PreviewCallback previewCallback;
 
-    Camera camera;
-    ImageView previewImage;
+    private Camera camera;
+    private ImageView previewImage;
 
-    boolean lightOn = false;
-    int currCamera = 0;
+    private boolean lightOn = false;
+    private int currCamera = 0;
 
-    final int CAMERA_FRONT = 0;
-    final int CAMERA_BACK = 1;
-    final boolean FULL_SCREEN = true;
+    private final int CAMERA_FRONT = 0;
+    private final int CAMERA_BACK = 1;
+    private final boolean FULL_SCREEN = true;
 
-    LinearLayout surfaceParent;
-    LinearLayout controlsParent;
+    private LinearLayout surfaceParent;
+    private LinearLayout controlsParent;
 
-    Button flashButton;
-    Button camerasButton;
+    private Button flashButton;
+    private Button camerasButton;
 
-    TextView foundColor;
-    TextView foundColorName;
-    TextView averagedColor;
+    private TextView foundColor;
+    private TextView foundColorName;
+    private TextView averagedColor;
 
-    RadioButton rbAveraged;
-    RadioButton rbDominant;
+    private RadioButton rbAveraged;
+    private RadioButton rbDominant;
 
-    Bitmap bmp;
-    SeekBar sbTolerance;
+    private Bitmap bmp;
+    private SeekBar sbTolerance;
 
-    final int MaxCounter = 15;
-    int counter = 0;
-    final int DeltaPixels = 25;
+    private final int MaxCounter = 15;
+    private int counter = 0;
+    private final int DeltaPixels = 25;
     final int MaxPrecision = 30;
 
     @Override
@@ -131,8 +131,8 @@ public class MainActivity extends Activity
 
         previewCallback = new PreviewCallback();
 
-        flashButton = (Button) findViewById(R.id.turnLight);
-        camerasButton = (Button) findViewById(R.id.changeCamera);
+        flashButton = findViewById(R.id.turnLight);
+        camerasButton = findViewById(R.id.changeCamera);
 
         previewImage = findViewById(R.id.previewImage);
         foundColor = findViewById(R.id.foundColor);
@@ -231,7 +231,7 @@ public class MainActivity extends Activity
 
         flashButton.setEnabled(!lightDisabled);
 
-        int camerasNumber = camera. getNumberOfCameras();
+        int camerasNumber = Camera.getNumberOfCameras();
         if (camerasButton != null)
         {
             camerasButton.setEnabled(camerasNumber > 1);
@@ -395,7 +395,7 @@ public class MainActivity extends Activity
         }
     }
 
-    void setPreviewSize(boolean fullScreen)
+    private void setPreviewSize(boolean fullScreen)
     {
         Display display = getWindowManager().getDefaultDisplay();
 //        boolean widthIsMax = display.getWidth() > display.getHeight();
@@ -436,6 +436,7 @@ public class MainActivity extends Activity
         }
         else
         {
+            //noinspection SuspiciousNameCombination
             rectPreview.set(0, 0, size.height, size.width);
         }
 
@@ -458,7 +459,7 @@ public class MainActivity extends Activity
         sv.getLayoutParams().width = (int) (rectPreview.right);
     }
 
-    void setCameraDisplayOrientation(int cameraId) {
+    private void setCameraDisplayOrientation(int cameraId) {
         // определяем насколько повернут экран от нормального положения
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
         int degrees = 0;

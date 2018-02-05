@@ -53,10 +53,9 @@ public class BitmapHelper
             // does alpha matter?
         }
 
-        int averageColor = getIntFromColor(redBucket / pixelCount,
+        return getIntFromColor(redBucket / pixelCount,
                 greenBucket / pixelCount,
                 blueBucket / pixelCount);
-        return averageColor;
     }
 
     private static int getIntFromColor(float Red, float Green, float Blue){
@@ -87,7 +86,7 @@ public class BitmapHelper
 
         bitmap2.getPixels(pixels, 0, width, 0, 0, width, height);
 */
-        final List<HashMap<Integer, Integer>> colorMap = new ArrayList<HashMap<Integer, Integer>>();
+        final List<HashMap<Integer, Integer>> colorMap = new ArrayList<>();
         colorMap.add(new HashMap<Integer, Integer>());
         colorMap.add(new HashMap<Integer, Integer>());
         colorMap.add(new HashMap<Integer, Integer>());
@@ -133,9 +132,7 @@ public class BitmapHelper
             rgb[i] = val;
         }
 
-        int dominantColor = getIntFromColor(rgb[0], rgb[1], rgb[2]);
-
-        return dominantColor;
+        return getIntFromColor(rgb[0], rgb[1], rgb[2]);
     }
 
 
