@@ -36,19 +36,21 @@ class ColorPair
 
     public ColorPair(int aColor, String aName)
     {
-        color = aColor;
         name = aName;
+        setColor(aColor);
     }
+
     public ColorPair(String aLine)
     {
         String[] tokens = aLine.split("=");
         name = tokens[0];
-        color = Color.parseColor(tokens[1]);
+        setColor(Color.parseColor(tokens[1]));
     }
 
     public void setColor(int aColor)
     {
         color = aColor;
+
         blue = Color.blue(color);
         red = Color.red(color);
         green = Color.green(color);

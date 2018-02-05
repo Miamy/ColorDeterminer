@@ -381,7 +381,7 @@ public class MainActivity extends Activity
 
                 foundColor.setBackgroundColor(0);
                 foundColorName.setText("no color");
-                ColorPair foundedColor = colorSpace.Find(avgColor, 3 * sbTolerance.getProgress());
+                ColorPair foundedColor = colorSpace.Find(avgColor, sbTolerance.getProgress());
                 if (foundedColor == null)
                     return;
                 foundColor.setBackgroundColor(foundedColor.getColor());
