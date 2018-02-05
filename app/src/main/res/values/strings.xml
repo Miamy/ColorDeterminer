@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">Color determiner</string>
+    <string name="toBackCamera">Switch to back</string>
+    <string name="toFrontCamera">Switch to front</string>
+    <string name="lightOn">Turn light on</string>
+    <string name="lightOff">Turn light off</string>
+    <string name="picked">Picked color</string>
+    <string name="averaged">Processed</string>
+    <string name="nearest">Nearest</string>
+    <string name="nearestName">Name</string>
+    <string name="method">Method</string>
+    <string name="methodAveraged">Averaged</string>
+    <string name="methodDominant">Dominant</string>
+    <string name="tolerance">Tolerance</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="none">-</string>
+    <string name="todo">TODO</string>
+</resources>
+
