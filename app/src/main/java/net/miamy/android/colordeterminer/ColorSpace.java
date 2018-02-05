@@ -2,6 +2,7 @@ package net.miamy.android.colordeterminer;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Environment;
 
 import java.io.BufferedReader;
@@ -15,6 +16,8 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -24,8 +27,8 @@ import java.util.ListIterator;
  */
 class ColorPair
 {
-    final int color;
-    final String name;
+    private int color;
+    private String name;
 
     private int blue;
     private int red;
@@ -36,15 +39,27 @@ class ColorPair
         color = aColor;
         name = aName;
     }
-    ColorPair(String aLine)
+    public ColorPair(String aLine)
     {
         String[] tokens = aLine.split("=");
         name = tokens[0];
         color = Color.parseColor(tokens[1]);
+    }
 
+    public void setColor(int aColor)
+    {
+        color = aColor;
         blue = Color.blue(color);
         red = Color.red(color);
         green = Color.green(color);
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public String getName() {
+        return name;
     }
 
     boolean IsEqual(int aColor, int aPrecision)
@@ -57,6 +72,17 @@ class ColorPair
         int red1 = Color.red(aColor);
         int green1 = Color.green(aColor);
         return Math.abs(blue1 - blue) <= aPrecision && Math.abs(red1 - red) <= aPrecision && Math.abs(green1 - green) <= aPrecision;
+    }
+
+    int GetDifference(int aColor)
+    {
+        if (aColor == color)
+            return 0;
+
+        int blue1 = Color.blue(aColor);
+        int red1 = Color.red(aColor);
+        int green1 = Color.green(aColor);
+        return Math.abs(blue1 - blue) + Math.abs(red1 - red) + Math.abs(green1 - green);
     }
 }
 
@@ -125,7 +151,7 @@ class ColorSpace
 
     ColorPair Find(int aColor, int aPrecision)
     {
-        int currPrecision = 0;
+        /*int currPrecision = 0;
         while (currPrecision <= aPrecision)
         {
             for (int i = 0; i < list.size(); i++)
@@ -137,9 +163,34 @@ class ColorSpace
                 }
             }
             currPrecision++;
+        }*/
+
+        //ArrayList<ColorPair, int> founded = new ArrayList<>();
+        final List<HashMap<ColorPair, Integer>> colorMap = new ArrayList<>();
+        ColorPair currPair = null;
+        int currPrecision = 100000000;
+        for (int i = 0; i < list.size(); i++)
+        {
+            ColorPair pair = list.get(i);
+            int diff = pair.GetDifference(aColor);
+            if (diff <= aPrecision)
+            {
+                //HashMap<ColorPair, Integer> h = new HashMap<>();
+                //h.put(pair, diff);
+                //colorMap.add(h);
+                if (diff < currPrecision)
+                {
+                    currPair = pair;
+                    currPrecision = diff;
+                }
+            }
         }
 
-        return null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            colorMap.sort(new MyComparator());
+        }
+        //colorMap.sort()
+        return currPair;
     }
 
     public ColorPair Find(int aColor)
@@ -150,5 +201,14 @@ class ColorSpace
     int Length()
     {
         return list.size();
+    }
+}
+
+class MyComparator implements Comparator
+{
+    @Override
+    public int compare(Object o1, Object o2)
+    {
+        return 0;
     }
 }

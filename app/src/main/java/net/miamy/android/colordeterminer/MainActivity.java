@@ -381,12 +381,13 @@ public class MainActivity extends Activity
 
                 foundColor.setBackgroundColor(0);
                 foundColorName.setText("no color");
-                ColorPair foundedColor = colorSpace.Find(avgColor, sbTolerance.getProgress());
+                ColorPair foundedColor = colorSpace.Find(avgColor, 3 * sbTolerance.getProgress());
                 if (foundedColor == null)
                     return;
-                foundColor.setBackgroundColor(foundedColor.color);
-                foundColorName.setText(foundedColor.name);
-                Log.d("colordeterminer", "onPreviewFrame: avg = " + avgColor + ", founded = " + foundedColor.color + ",  " + foundedColor.name);
+                foundColor.setBackgroundColor(foundedColor.getColor());
+                foundColorName.setText(foundedColor.getName());
+                Log.d("colordeterminer", "onPreviewFrame: avg = " + avgColor + ", founded = " + foundedColor.getColor() + ",  " +
+                        foundedColor.getName());
             }
             catch (Exception e)
             {
