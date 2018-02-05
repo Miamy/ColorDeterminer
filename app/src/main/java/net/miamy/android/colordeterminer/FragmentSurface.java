@@ -1,7 +1,5 @@
 package net.miamy.android.colordeterminer;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -22,7 +21,6 @@ import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Size;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Layout;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -44,7 +42,6 @@ public class MainActivity extends Activity
     private ColorSpace colorSpace;
     private SurfaceView sv;
     private SurfaceHolder holder;
-    private HolderCallback holderCallback;
     private Camera.PreviewCallback previewCallback;
 
     private Camera camera;
@@ -54,7 +51,6 @@ public class MainActivity extends Activity
     private int currCamera = 0;
 
     private final int CAMERA_FRONT = 0;
-    private final int CAMERA_BACK = 1;
     private final boolean FULL_SCREEN = true;
 
     private LinearLayout surfaceParent;
@@ -70,12 +66,9 @@ public class MainActivity extends Activity
     private RadioButton rbAveraged;
     private RadioButton rbDominant;
 
-    private Bitmap bmp;
     private SeekBar sbTolerance;
 
-    private final int MaxCounter = 15;
     private int counter = 0;
-    private final int DeltaPixels = 25;
     final int MaxPrecision = 30;
 
     @Override
@@ -126,7 +119,7 @@ public class MainActivity extends Activity
         holder = sv.getHolder();
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
-        holderCallback = new HolderCallback();
+        HolderCallback holderCallback = new HolderCallback();
         holder.addCallback(holderCallback);
 
         previewCallback = new PreviewCallback();
@@ -253,6 +246,7 @@ public class MainActivity extends Activity
         camera.stopPreview();
         camera.setPreviewCallback(null);
         camera.release();
+        int CAMERA_BACK = 1;
         currCamera = currCamera == 0 ? CAMERA_BACK : CAMERA_FRONT;
         camera = Camera.open(currCamera);
         camera.setPreviewCallback(previewCallback);
@@ -332,7 +326,8 @@ public class MainActivity extends Activity
         public void onPreviewFrame(byte[] data, Camera camera)
         {
             counter++;
-            if (counter != MaxCounter)
+            int maxCounter = 15;
+            if (counter != maxCounter)
                 return;
             //Log.d("colordeterminer", "onPreviewFrame: " + data.toString());
             try
@@ -352,19 +347,20 @@ public class MainActivity extends Activity
                 yuv.compressToJpeg(new Rect(0, 0, width, height), 50, out);
 
                 byte[] bytes = out.toByteArray();
-                bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                 if (bmp == null)
                     return;
 
                 width = bmp.getWidth();
                 height = bmp.getHeight();
+                int deltaPixels = 25;
                 bmp = Bitmap.createBitmap (bmp,
-                        width / 2 - DeltaPixels, height / 2  - DeltaPixels, 2 * DeltaPixels, 2 * DeltaPixels);
+                        width / 2 - deltaPixels, height / 2  - deltaPixels, 2 * deltaPixels, 2 * deltaPixels);
                 previewImage.setImageBitmap(bmp);
 
                 width = bmp.getWidth();
                 height = bmp.getHeight();
-                int[] centerPixels = new int[4 * DeltaPixels * DeltaPixels];
+                int[] centerPixels = new int[4 * deltaPixels * deltaPixels];
                 bmp.getPixels(centerPixels, 0, width, 0, 0, width, height);
 //                BitmapHelper.getBitmapPixels(bmp, width / 2 - DeltaPixels, height / 2  - DeltaPixels, 2 * DeltaPixels, 2 * DeltaPixels);
 

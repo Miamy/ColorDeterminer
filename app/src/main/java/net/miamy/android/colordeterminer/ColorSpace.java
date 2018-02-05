@@ -9,18 +9,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
 /**
  * Created by Miamy on 03.02.2018.
@@ -187,11 +182,6 @@ class ColorSpace
                 }
             }
         }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            colorMap.sort(new MyComparator());
-        }
-        //colorMap.sort()
         return currPair;
     }
 
@@ -206,11 +196,3 @@ class ColorSpace
     }
 }
 
-class MyComparator implements Comparator
-{
-    @Override
-    public int compare(Object o1, Object o2)
-    {
-        return 0;
-    }
-}
