@@ -37,6 +37,9 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import static android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK;
+import static android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT;
+
 public class MainActivity extends Activity
 {
     private ColorSpace colorSpace;
@@ -50,7 +53,6 @@ public class MainActivity extends Activity
     private boolean lightOn = false;
     private int currCamera = 0;
 
-    private final int CAMERA_FRONT = 0;
     private final boolean FULL_SCREEN = true;
 
     private LinearLayout surfaceParent;
@@ -95,7 +97,7 @@ public class MainActivity extends Activity
         }
         Log.d("colordeterminer2", files.toString());*/
 
-        InputStream raw = getResources().openRawResource(R.raw.colors);
+        InputStream raw = getResources().openRawResource(R.raw.colors_wiki);
 
         colorSpace = ColorSpace.getInstance();
         try
@@ -114,6 +116,8 @@ public class MainActivity extends Activity
             showDialog("Color definitions not found.");
             finish();
         }
+
+        currCamera = CAMERA_FACING_BACK;
 
         sv = findViewById(R.id.surfaceView);
         holder = sv.getHolder();
@@ -146,7 +150,7 @@ public class MainActivity extends Activity
     protected void onResume()
     {
         super.onResume();
-        camera = Camera.open(CAMERA_FRONT);
+        camera = Camera.open(currCamera);
         setPreviewSize(FULL_SCREEN);
 
         setControlsEnabled();
@@ -159,7 +163,10 @@ public class MainActivity extends Activity
     {
         super.onPause();
         if (camera != null)
+        {
+            lightOff();
             camera.release();
+        }
         camera = null;
     }
 
@@ -179,8 +186,22 @@ public class MainActivity extends Activity
             params.addRule(RelativeLayout.ALIGN_PARENT_END, R.id.surfaceParent);
         }
         controlsParent.setLayoutParams(params);
+        setCameraDisplayOrientation(currCamera);
     }
 
+    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    {
+        super.onRestoreInstanceState(savedInstanceState);
+        currCamera = savedInstanceState.getInt("currCamera");
+        changeCameraClick(null);
+    }
+
+
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+        outState.putInt("currCamera", currCamera);
+    }
 
     private void setDrawable()
     {
@@ -243,11 +264,11 @@ public class MainActivity extends Activity
 
     public void changeCameraClick(View view)
     {
+        lightOff();
         camera.stopPreview();
         camera.setPreviewCallback(null);
         camera.release();
-        int CAMERA_BACK = 1;
-        currCamera = currCamera == 0 ? CAMERA_BACK : CAMERA_FRONT;
+        currCamera = currCamera == CAMERA_FACING_BACK ? CAMERA_FACING_FRONT : CAMERA_FACING_BACK;
         camera = Camera.open(currCamera);
         camera.setPreviewCallback(previewCallback);
         setCameraDisplayOrientation(currCamera);
@@ -264,6 +285,14 @@ public class MainActivity extends Activity
 
         //currCamera = 1 - currCamera;
         camerasButton.setText(currCamera == 1 ? R.string.toBackCamera: R.string.toFrontCamera);
+    }
+
+    private void lightOff()
+    {
+        if (lightOn)
+        {
+            turnLightClick(null);
+        }
     }
 
     public void dominantMethodClick(View view)
@@ -296,14 +325,14 @@ public class MainActivity extends Activity
             try
             {
                 camera.setPreviewDisplay(holder);
-                Camera.Parameters params = camera.getParameters();
+                //Camera.Parameters params = camera.getParameters();
                 //params.setPictureFormat(ImageFormat.JPEG);
                 //List<Integer> formats = params.getSupportedPictureFormats();
                 //for (int i = 0; i<formats.size(); i++)
                 // {
                 //    Log.d("colordeterminer", String.valueOf(formats.get(i)));
                 //}
-                camera.setParameters(params);
+                //camera.setParameters(params);
                 camera.setPreviewCallback(previewCallback);
                 camera.startPreview();
             }
@@ -353,15 +382,22 @@ public class MainActivity extends Activity
 
                 width = bmp.getWidth();
                 height = bmp.getHeight();
-                int deltaPixels = 25;
+                int deltaPixels = 10;
                 bmp = Bitmap.createBitmap (bmp,
                         width / 2 - deltaPixels, height / 2  - deltaPixels, 2 * deltaPixels, 2 * deltaPixels);
+
                 previewImage.setImageBitmap(bmp);
 
-                width = bmp.getWidth();
-                height = bmp.getHeight();
+                int angle = getRotationAngle(currCamera);
+                Matrix matrix = new Matrix();
+                matrix.postRotate(0);
+                Bitmap rotated = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
+                //bmp.recycle();
+
+                width = rotated.getWidth();
+                height = rotated.getHeight();
                 int[] centerPixels = new int[4 * deltaPixels * deltaPixels];
-                bmp.getPixels(centerPixels, 0, width, 0, 0, width, height);
+                rotated.getPixels(centerPixels, 0, width, 0, 0, width, height);
 //                BitmapHelper.getBitmapPixels(bmp, width / 2 - DeltaPixels, height / 2  - DeltaPixels, 2 * DeltaPixels, 2 * DeltaPixels);
 
                 int avgColor;
@@ -402,7 +438,7 @@ public class MainActivity extends Activity
 
         int width;
         int height;
-        final int Dimension = 800;
+        final int Dimension = 850;
 
         if (metrics.heightPixels > metrics.widthPixels)
         {
@@ -415,7 +451,7 @@ public class MainActivity extends Activity
             width = metrics.widthPixels - Dimension;
         }
         surfaceParent.getLayoutParams().height = height;
-        surfaceParent.getLayoutParams().width = width;// ActionBar.LayoutParams.MATCH_PARENT;
+        surfaceParent.getLayoutParams().width = width;
 
         boolean widthIsMax = width > height;
 
@@ -456,11 +492,19 @@ public class MainActivity extends Activity
         sv.getLayoutParams().width = (int) (rectPreview.right);
     }
 
-    private void setCameraDisplayOrientation(int cameraId) {
+    private void setCameraDisplayOrientation(int cameraId)
+    {
+        int result = getRotationAngle(cameraId);
+        camera.setDisplayOrientation(result);
+    }
+
+    private int getRotationAngle(int cameraId)
+    {
         // определяем насколько повернут экран от нормального положения
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
         int degrees = 0;
-        switch (rotation) {
+        switch (rotation)
+        {
             case Surface.ROTATION_0:
                 degrees = 0;
                 break;
@@ -482,15 +526,16 @@ public class MainActivity extends Activity
         Camera.getCameraInfo(cameraId, info);
 
         // задняя камера
-        if (info.facing == CameraInfo.CAMERA_FACING_BACK) {
+        if (info.facing == CAMERA_FACING_BACK) {
             result = ((360 - degrees) + info.orientation);
         } else
             // передняя камера
-            if (info.facing == CameraInfo.CAMERA_FACING_FRONT) {
+            if (info.facing == CAMERA_FACING_FRONT)
+            {
                 result = ((360 - degrees) - info.orientation);
                 result += 360;
             }
-        result = result % 360;
-        camera.setDisplayOrientation(result);
+
+        return result % 360;
     }
 }

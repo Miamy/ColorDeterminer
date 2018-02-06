@@ -2,8 +2,8 @@ package net.miamy.android.colordeterminer;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -23,7 +22,7 @@ import java.util.List;
 class ColorPair
 {
     private int color;
-    private String name;
+    private final String name;
 
     private int blue;
     private int red;
@@ -37,9 +36,10 @@ class ColorPair
 
     public ColorPair(String aLine)
     {
+        Log.d("colordeterminer", "ColorPair: " + aLine);
         String[] tokens = aLine.split("=");
-        name = tokens[0];
-        setColor(Color.parseColor(tokens[1]));
+        name = tokens[0].trim();
+        setColor(Color.parseColor(tokens[1].trim()));
     }
 
     public void setColor(int aColor)

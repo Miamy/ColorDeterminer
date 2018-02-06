@@ -18,16 +18,16 @@
         <SurfaceView
             android:id="@+id/surfaceView"
             android:layout_width="300dp"
-            android:layout_height="300dp"></SurfaceView>
+            android:layout_height="300dp" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/controlsParent"
         android:layout_width="match_parent"
         android:layout_height="500dp"
-        android:orientation="vertical"
         android:layout_below="@id/surfaceParent"
-        >
+        android:orientation="vertical"
+        android:padding="5dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -63,7 +63,7 @@
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="10dp">
+            android:padding="5dp">
 
             <TableRow
                 android:layout_width="match_parent"
@@ -121,10 +121,10 @@
                     android:layout_column="0"
                     android:layout_gravity="center"
                     android:layout_weight="1"
+                    android:contentDescription="@string/todo"
                     android:maxWidth="40dp"
                     android:minWidth="40dp"
-                    android:scaleType="fitCenter"
-                    android:contentDescription="@string/todo" />
+                    android:scaleType="fitCenter" />
 
                 <TextView
                     android:id="@+id/averagedColor"
