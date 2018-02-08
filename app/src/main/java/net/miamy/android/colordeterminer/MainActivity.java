@@ -3,11 +3,7 @@ package net.miamy.android.colordeterminer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.DateTimeException;
-import java.util.Date;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -17,12 +13,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.PixelFormat;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.YuvImage;
@@ -32,15 +23,14 @@ import android.hardware.Camera.Size;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.text.Layout;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsoluteLayout;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -56,9 +46,8 @@ public class MainActivity extends Activity
 {
     private ColorSpace colorSpace;
     private SurfaceView sv;
-    private LayoutView transparentView;
     private SurfaceHolder holder;
-    private SurfaceHolder holderTransparent;
+    private LayoutView transparentView;
     private Camera.PreviewCallback previewCallback;
 
     private Camera camera;
@@ -69,7 +58,7 @@ public class MainActivity extends Activity
 
     private final boolean FULL_SCREEN = true;
 
-    private RelativeLayout surfaceParent;
+    private AbsoluteLayout surfaceParent;
     private LinearLayout controlsParent;
 
     private Button flashButton;
@@ -86,7 +75,8 @@ public class MainActivity extends Activity
 
     private int counter = 0;
     final int MaxPrecision = 30;
-    final int deltaPixels = 10;
+    final int clipSize = 10;
+    private int deltaY;
 
     private SharedPreferences preferences;
 
@@ -147,8 +137,7 @@ public class MainActivity extends Activity
         LoadSettings();
         //setDrawable();
         camerasButton.setText(currCamera == CAMERA_FACING_FRONT ? R.string.toBackCamera: R.string.toFrontCamera);
-
-        transparentView.setDelta(deltaPixels);
+        transparentView.setDelta(clipSize);
 
     }
 
@@ -235,6 +224,7 @@ public class MainActivity extends Activity
         controlsParent = findViewById(R.id.controlsParent);
         sbTolerance = findViewById(R.id.sbTolerance);
         transparentView = (LayoutView) findViewById(R.id.TransparentView);
+
     }
 
 
@@ -419,19 +409,24 @@ public class MainActivity extends Activity
 
                 width = bmp.getWidth();
                 height = bmp.getHeight();
-                bmp = Bitmap.createBitmap (bmp,
-                        width / 2 - deltaPixels, height / 2  - deltaPixels, 2 * deltaPixels, 2 * deltaPixels);
-
                 int angle = getRotationAngle(currCamera);
                 Matrix matrix = new Matrix();
                 matrix.postRotate(angle);
-                Bitmap rotated = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
-                //bmp.recycle();
+                //Bitmap rotated/*bmp*/ =
+                 bmp =
+                        Bitmap.createBitmap (bmp,(width) / 2 - clipSize, (height ) / 2  - clipSize, 2 * clipSize, 2 * clipSize);
+                        //Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
+
+//                int angle = getRotationAngle(currCamera);
+//                Matrix matrix = new Matrix();
+//                matrix.postRotate(angle);
+                Bitmap
+                        rotated = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
                 previewImage.setImageBitmap(rotated);
 
                 width = rotated.getWidth();
                 height = rotated.getHeight();
-                int[] centerPixels = new int[4 * deltaPixels * deltaPixels];
+                int[] centerPixels = new int[4 * clipSize * clipSize];
                 rotated.getPixels(centerPixels, 0, width, 0, 0, width, height);
 //                BitmapHelper.getBitmapPixels(bmp, width / 2 - DeltaPixels, height / 2  - DeltaPixels, 2 * DeltaPixels, 2 * DeltaPixels);
 
@@ -488,6 +483,9 @@ public class MainActivity extends Activity
         surfaceParent.getLayoutParams().height = height;
         surfaceParent.getLayoutParams().width = width;
 
+//        transparentView.getLayoutParams().height = height;
+//        transparentView.getLayoutParams().width = width;
+
         boolean widthIsMax = width > height;
 
         // определяем размеры превью камеры
@@ -498,14 +496,14 @@ public class MainActivity extends Activity
 
         rectDisplay.set(0, 0, width, height);
 
-        if (!widthIsMax)
-        {
-            rectPreview.set(0, 0, size.width, size.height);
-        }
-        else
+        if (widthIsMax)
         {
             //noinspection SuspiciousNameCombination
             rectPreview.set(0, 0, size.height, size.width);
+        }
+        else
+        {
+            rectPreview.set(0, 0, size.width, size.height);
         }
 
         Matrix matrix = new Matrix();
@@ -522,8 +520,14 @@ public class MainActivity extends Activity
         }
         matrix.mapRect(rectPreview);
 
-        sv.getLayoutParams().height = (int) (rectPreview.bottom);
-        sv.getLayoutParams().width = (int) (rectPreview.right);
+
+        sv.getLayoutParams().height = (int) rectPreview.bottom;
+        sv.getLayoutParams().width = (int) rectPreview.right;
+        sv.setY(rectPreview.top);
+        transparentView.getLayoutParams().height = (int) (rectPreview.bottom);
+        transparentView.getLayoutParams().width = (int) (rectPreview.right);
+        transparentView.setY(rectPreview.top);
+        deltaY = -(int) rectPreview.top;
     }
 
     private void setCameraDisplayOrientation(int cameraId)

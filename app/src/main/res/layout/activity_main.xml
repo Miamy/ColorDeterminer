@@ -7,7 +7,7 @@
     android:orientation="vertical"
     >
 
-    <RelativeLayout
+    <AbsoluteLayout
         android:id="@+id/surfaceParent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,14 +18,17 @@
             android:layout_width="300dp"
             android:layout_height="300dp"
             android:layout_alignParentTop="true"
- />
+            android:layout_x="0dp"
+            android:layout_y="0dp" />
 
         <net.miamy.android.colordeterminer.LayoutView
             android:id="@+id/TransparentView"
             android:layout_width="300dp"
             android:layout_height="300dp"
-            android:layout_alignParentTop="true" />
-    </RelativeLayout>
+            android:layout_alignParentTop="true"
+            android:layout_x="0dp"
+            android:layout_y="0dp" />
+    </AbsoluteLayout>
 
     <LinearLayout
         android:id="@+id/controlsParent"
