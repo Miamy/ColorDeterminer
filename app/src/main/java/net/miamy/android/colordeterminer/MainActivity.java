@@ -473,7 +473,7 @@ public class MainActivity extends Activity
 
         int width;
         int height;
-        final int Dimension = 850;
+        final int Dimension = 950;
 
         if (metrics.heightPixels > metrics.widthPixels)
         {
@@ -513,16 +513,15 @@ public class MainActivity extends Activity
         if (!fullScreen) {
             // если превью будет "втиснут" в экран (второй вариант из урока)
             matrix.setRectToRect(rectPreview, rectDisplay,
-                    Matrix.ScaleToFit.START);
+                    Matrix.ScaleToFit.CENTER);
         } else {
             // если экран будет "втиснут" в превью (третий вариант из урока)
             matrix.setRectToRect(rectDisplay, rectPreview,
-                    Matrix.ScaleToFit.START);
+                    Matrix.ScaleToFit.CENTER);
             matrix.invert(matrix);
         }
         matrix.mapRect(rectPreview);
 
-        // установка размеров surface из получившегося преобразования
         sv.getLayoutParams().height = (int) (rectPreview.bottom);
         sv.getLayoutParams().width = (int) (rectPreview.right);
     }
