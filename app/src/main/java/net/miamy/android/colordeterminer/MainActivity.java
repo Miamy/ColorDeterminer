@@ -3,16 +3,26 @@ package net.miamy.android.colordeterminer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.DateTimeException;
+import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.YuvImage;
@@ -21,6 +31,8 @@ import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Size;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.text.Layout;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -44,7 +56,9 @@ public class MainActivity extends Activity
 {
     private ColorSpace colorSpace;
     private SurfaceView sv;
+    private LayoutView transparentView;
     private SurfaceHolder holder;
+    private SurfaceHolder holderTransparent;
     private Camera.PreviewCallback previewCallback;
 
     private Camera camera;
@@ -55,7 +69,7 @@ public class MainActivity extends Activity
 
     private final boolean FULL_SCREEN = true;
 
-    private LinearLayout surfaceParent;
+    private RelativeLayout surfaceParent;
     private LinearLayout controlsParent;
 
     private Button flashButton;
@@ -72,6 +86,9 @@ public class MainActivity extends Activity
 
     private int counter = 0;
     final int MaxPrecision = 30;
+    final int deltaPixels = 10;
+
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -117,9 +134,8 @@ public class MainActivity extends Activity
             finish();
         }
 
-        currCamera = CAMERA_FACING_BACK;
+        InitControls();
 
-        sv = findViewById(R.id.surfaceView);
         holder = sv.getHolder();
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
@@ -127,6 +143,82 @@ public class MainActivity extends Activity
         holder.addCallback(holderCallback);
 
         previewCallback = new PreviewCallback();
+
+        LoadSettings();
+        //setDrawable();
+        camerasButton.setText(currCamera == CAMERA_FACING_FRONT ? R.string.toBackCamera: R.string.toFrontCamera);
+
+        transparentView.setDelta(deltaPixels);
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        SaveSettings();
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        camera = Camera.open(currCamera);
+        setPreviewSize(FULL_SCREEN);
+
+        setControlsEnabled();
+    }
+
+    private void DrawRect() {
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (camera != null) {
+            lightOff();
+            camera.release();
+        }
+        camera = null;
+    }
+
+    public void onConfigurationChanged(Configuration newConfig)
+    {
+        super.onConfigurationChanged(newConfig);
+
+        RelativeLayout.LayoutParams params= new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (newConfig.screenHeightDp > newConfig.screenWidthDp)
+        {
+            //params.removeRule(RelativeLayout.RIGHT_OF);
+            params.addRule(RelativeLayout.BELOW, R.id.surfaceParent);
+        }
+        else
+        {
+            //params.removeRule(RelativeLayout.BELOW);
+            params.addRule(RelativeLayout.ALIGN_PARENT_END, R.id.surfaceParent);
+        }
+        controlsParent.setLayoutParams(params);
+        setCameraDisplayOrientation(currCamera);
+    }
+
+    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    {
+        super.onRestoreInstanceState(savedInstanceState);
+        //currCamera = savedInstanceState.getInt("currCamera");
+        LoadSettings();
+        changeCameraClick(null);
+    }
+
+
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        //super.onSaveInstanceState(outState);
+        SaveSettings();
+        outState.putInt("currCamera", currCamera);
+    }
+
+    private void InitControls() {
+        sv = findViewById(R.id.surfaceView);
 
         flashButton = findViewById(R.id.turnLight);
         camerasButton = findViewById(R.id.changeCamera);
@@ -142,71 +234,29 @@ public class MainActivity extends Activity
         surfaceParent = findViewById(R.id.surfaceParent);
         controlsParent = findViewById(R.id.controlsParent);
         sbTolerance = findViewById(R.id.sbTolerance);
-
-        setDrawable();
+        transparentView = (LayoutView) findViewById(R.id.TransparentView);
     }
 
-    @Override
-    protected void onResume()
+
+    private void LoadSettings()
     {
-        super.onResume();
-        camera = Camera.open(currCamera);
-        setPreviewSize(FULL_SCREEN);
-
-        setControlsEnabled();
-
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        currCamera = preferences.getInt("currCamera", CAMERA_FACING_BACK);
+        boolean method = preferences.getBoolean("method", true);
+        rbAveraged.setChecked(method);
+        rbDominant.setChecked(!method);
+        sbTolerance.setProgress(preferences.getInt("Tolerance", 10));
     }
-
-
-    @Override
-    protected void onPause()
+    private void SaveSettings()
     {
-        super.onPause();
-        if (camera != null)
-        {
-            lightOff();
-            camera.release();
-        }
-        camera = null;
-    }
-
-    public void onConfigurationChanged(Configuration newConfig)
-    {
-        super.onConfigurationChanged(newConfig);
-
-        RelativeLayout.LayoutParams params= new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        if (newConfig.screenHeightDp > newConfig.screenWidthDp)
-        {
-            params.removeRule(RelativeLayout.RIGHT_OF);
-            params.addRule(RelativeLayout.BELOW, R.id.surfaceParent);
-        }
-        else
-        {
-            params.removeRule(RelativeLayout.BELOW);
-            params.addRule(RelativeLayout.ALIGN_PARENT_END, R.id.surfaceParent);
-        }
-        controlsParent.setLayoutParams(params);
-        setCameraDisplayOrientation(currCamera);
-    }
-
-    protected void onRestoreInstanceState(Bundle savedInstanceState)
-    {
-        super.onRestoreInstanceState(savedInstanceState);
-        currCamera = savedInstanceState.getInt("currCamera");
-        changeCameraClick(null);
+        SharedPreferences.Editor ed = preferences.edit();
+        ed.putInt("currCamera", currCamera );
+        ed.putBoolean("method", rbAveraged.isChecked());
+        ed.putInt("Tolerance", sbTolerance.getProgress());
+        ed.commit();
     }
 
 
-    protected void onSaveInstanceState(Bundle outState)
-    {
-        super.onSaveInstanceState(outState);
-        outState.putInt("currCamera", currCamera);
-    }
-
-    private void setDrawable()
-    {
-        previewImage.setImageResource(R.drawable.shape);
-    }
     private void showDialog(String message)
     {
         AlertDialog.Builder builder;
@@ -283,8 +333,7 @@ public class MainActivity extends Activity
         setPreviewSize(FULL_SCREEN);
         camera.startPreview();
 
-        //currCamera = 1 - currCamera;
-        camerasButton.setText(currCamera == 1 ? R.string.toBackCamera: R.string.toFrontCamera);
+        camerasButton.setText(currCamera == CAMERA_FACING_FRONT ? R.string.toBackCamera: R.string.toFrontCamera);
     }
 
     private void lightOff()
@@ -309,13 +358,7 @@ public class MainActivity extends Activity
 
         @Override
         public void surfaceCreated(SurfaceHolder holder) {
-/*            try {
-                camera.setPreviewDisplay(holder);
-                camera.startPreview();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-*/        }
+        }
 
         @Override
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
@@ -355,17 +398,11 @@ public class MainActivity extends Activity
         public void onPreviewFrame(byte[] data, Camera camera)
         {
             counter++;
-            int maxCounter = 15;
+            int maxCounter = 5;
             if (counter != maxCounter)
                 return;
-            //Log.d("colordeterminer", "onPreviewFrame: " + data.toString());
             try
             {
-/*                File pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                FileOutputStream fos = new FileOutputStream(new File(pictures, "myphoto.jpg"));
-                fos.write(data);
-                fos.close();
-                bmp = BitmapFactory.decodeByteArray(data,0,data.length);*/
                 counter = 0;
                 Camera.Parameters parameters = camera.getParameters();
                 int width = parameters.getPreviewSize().width;
@@ -382,17 +419,15 @@ public class MainActivity extends Activity
 
                 width = bmp.getWidth();
                 height = bmp.getHeight();
-                int deltaPixels = 10;
                 bmp = Bitmap.createBitmap (bmp,
                         width / 2 - deltaPixels, height / 2  - deltaPixels, 2 * deltaPixels, 2 * deltaPixels);
 
-                previewImage.setImageBitmap(bmp);
-
                 int angle = getRotationAngle(currCamera);
                 Matrix matrix = new Matrix();
-                matrix.postRotate(0);
+                matrix.postRotate(angle);
                 Bitmap rotated = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
                 //bmp.recycle();
+                previewImage.setImageBitmap(rotated);
 
                 width = rotated.getWidth();
                 height = rotated.getHeight();
@@ -418,8 +453,8 @@ public class MainActivity extends Activity
                     return;
                 foundColor.setBackgroundColor(foundedColor.getColor());
                 foundColorName.setText(foundedColor.getName());
-                Log.d("colordeterminer", "onPreviewFrame: avg = " + avgColor + ", founded = " + foundedColor.getColor() + ",  " +
-                        foundedColor.getName());
+//                Log.d("colordeterminer", "onPreviewFrame: avg = " + avgColor + ", founded = " + foundedColor.getColor() + ",  " +
+//                        foundedColor.getName());
             }
             catch (Exception e)
             {
