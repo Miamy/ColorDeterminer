@@ -78,7 +78,6 @@ public class MainActivity extends Activity
     private int counter = 0;
     final int MaxPrecision = 30;
     final int clipSize = 10;
-    private int deltaY;
 
     private SharedPreferences preferences;
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 555;
@@ -433,17 +432,17 @@ public class MainActivity extends Activity
 
                 width = bmp.getWidth();
                 height = bmp.getHeight();
-                int angle = getRotationAngle(currCamera);
-                Matrix matrix = new Matrix();
-                matrix.postRotate(angle);
+//                int angle = getRotationAngle(currCamera);
+//                Matrix matrix = new Matrix();
+//                matrix.postRotate(angle);
                 //Bitmap rotated/*bmp*/ =
                  bmp =
                         Bitmap.createBitmap (bmp,(width) / 2 - clipSize, (height ) / 2  - clipSize, 2 * clipSize, 2 * clipSize);
                         //Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
 
-//                int angle = getRotationAngle(currCamera);
-//                Matrix matrix = new Matrix();
-//                matrix.postRotate(angle);
+                int angle = getRotationAngle(currCamera);
+                Matrix matrix = new Matrix();
+                matrix.postRotate(angle);
                 Bitmap
                         rotated = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
                 previewImage.setImageBitmap(rotated);
@@ -497,15 +496,19 @@ public class MainActivity extends Activity
         if (metrics.heightPixels > metrics.widthPixels)
         {
             width = metrics.widthPixels;
-            height = metrics.heightPixels - Dimension;
+            //height = metrics.heightPixels - Dimension;
+            height = metrics.heightPixels / 2;
         }
         else
         {
             height = metrics.heightPixels;
-            width = metrics.widthPixels - Dimension;
+            //width = metrics.widthPixels - Dimension;
+            width = metrics.widthPixels / 2;
         }
         surfaceParent.getLayoutParams().height = height;
         surfaceParent.getLayoutParams().width = width;
+        //transparentView.getLayoutParams().height = height;
+        //transparentView.getLayoutParams().width = width;
 
 //        transparentView.getLayoutParams().height = height;
 //        transparentView.getLayoutParams().width = width;
@@ -545,13 +548,14 @@ public class MainActivity extends Activity
         matrix.mapRect(rectPreview);
 
 
-        sv.getLayoutParams().height = (int) rectPreview.bottom;
+        sv.getLayoutParams().height = (int) rectPreview.height(); //(int) rectPreview.bottom;
         sv.getLayoutParams().width = (int) rectPreview.right;
+        //sv.setX(rectPreview.left);
         sv.setY(rectPreview.top);
-        transparentView.getLayoutParams().height = (int) (rectPreview.bottom);
-        transparentView.getLayoutParams().width = (int) (rectPreview.right);
-        transparentView.setY(rectPreview.top);
-        deltaY = -(int) rectPreview.top;
+        //transparentView.getLayoutParams().height = (int) (rectPreview.bottom);
+        //transparentView.getLayoutParams().width = (int) (rectPreview.right);
+        //transparentView.setX(rectPreview.left);
+        //transparentView.setY(rectPreview.top);
     }
 
     private void setCameraDisplayOrientation(int cameraId)

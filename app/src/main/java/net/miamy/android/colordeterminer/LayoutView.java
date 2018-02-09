@@ -26,7 +26,7 @@ public class LayoutView extends View
         super.onDraw(canvas);
 
         int width = getWidth();
-        int height = getHeight() - (int) getY();
+        int height = getHeight();// - (int) getY();
         DrawFocusRect(canvas, width / 2 - delta, height / 2 - delta,
                 width / 2 + delta, height / 2 + delta, Color.WHITE);
     }
