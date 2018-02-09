@@ -23,6 +23,8 @@ import android.hardware.Camera.Size;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Surface;
@@ -79,6 +81,7 @@ public class MainActivity extends Activity
     private int deltaY;
 
     private SharedPreferences preferences;
+    private static final int MY_PERMISSIONS_REQUEST_CAMERA = 555;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -95,6 +98,13 @@ public class MainActivity extends Activity
             finish();
         }
 
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, MY_PERMISSIONS_REQUEST_CAMERA);
+        }
+        else
+        {
+        }
         /*String[] files =new String[1];
         try {
             files = getAssets().list("/");
@@ -105,7 +115,6 @@ public class MainActivity extends Activity
         Log.d("colordeterminer2", files.toString());*/
 
         InputStream raw = getResources().openRawResource(R.raw.colors_wiki);
-
         colorSpace = ColorSpace.getInstance();
         try
         {
@@ -157,9 +166,24 @@ public class MainActivity extends Activity
         setControlsEnabled();
     }
 
-    private void DrawRect() {
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults)
+    {
+        switch (requestCode)
+        {
+            case MY_PERMISSIONS_REQUEST_CAMERA:
+            {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                {
+                }
+                else
+                {
+                    showDialog("Camera not accessible.");
+                    finish();
+                }
+            }
+        }
     }
-
 
     @Override
     protected void onPause() {
