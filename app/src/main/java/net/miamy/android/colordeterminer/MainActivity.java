@@ -31,7 +31,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AbsoluteLayout;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -84,7 +84,7 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        //requestWindowFeature(Window.FEATURE_NO_TITLE);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
 
@@ -145,6 +145,11 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         setPreviewSize();
 
         setControlsEnabled();
+
+        Display display = getWindowManager().getDefaultDisplay();
+        DisplayMetrics metrics = new DisplayMetrics();
+        display.getMetrics(metrics);
+        setupLayout(metrics.widthPixels, metrics.heightPixels);
     }
 
     @Override
@@ -179,14 +184,12 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
     {
         super.onConfigurationChanged(newConfig);
 
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
-        int where = (newConfig.screenHeightDp > newConfig.screenWidthDp) ? BELOW : ALIGN_PARENT_END;
-        params.addRule(where, R.id.surfaceParent);
-        controlsParent.setLayoutParams(params);
+        setupLayout(newConfig.screenWidthDp, newConfig.screenHeightDp);
 
         setCameraDisplayOrientation(currCamera);
         setPreviewSize();
     }
+
 
     protected void onRestoreInstanceState(Bundle savedInstanceState)
     {
@@ -203,6 +206,15 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         SaveSettings();
         outState.putInt("currCamera", currCamera);
     }
+
+    private void setupLayout(int width, int height)
+    {
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
+        int where = (height > width) ? BELOW : ALIGN_PARENT_END;
+        params.addRule(where, R.id.surfaceParent);
+        controlsParent.setLayoutParams(params);
+    }
+
 
     private void InitControls() {
         sv = findViewById(R.id.surfaceView);
@@ -221,7 +233,6 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         surfaceParent = findViewById(R.id.surfaceParent);
         controlsParent = findViewById(R.id.controlsParent);
         transparentView = (LayoutView) findViewById(R.id.TransparentView);
-
     }
 
 
@@ -345,7 +356,6 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
     private void setPreviewSize()
     {
         Display display = getWindowManager().getDefaultDisplay();
-
         DisplayMetrics metrics = new DisplayMetrics();
         display.getMetrics(metrics);
 
@@ -400,8 +410,8 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         matrix.invert(matrix);
         matrix.mapRect(rectPreview);
 
-        sv.getLayoutParams().height = (int) rectPreview.height(); //(int) rectPreview.bottom;
-        sv.getLayoutParams().width = (int) rectPreview.right;
+        sv.getLayoutParams().height = (int) rectPreview.height();
+        sv.getLayoutParams().width = (int) rectPreview.width();
         sv.setX(rectPreview.left);
         sv.setY(rectPreview.top);
         //transparentView.getLayoutParams().height = (int) (rectPreview.bottom);

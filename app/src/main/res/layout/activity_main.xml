@@ -6,7 +6,7 @@
 
     <AbsoluteLayout
         android:id="@+id/surfaceParent"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="0dp">
 
@@ -41,31 +41,68 @@
 
             <Button
                 android:id="@+id/changeCamera"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="35dp"
                 android:layout_weight="1"
                 android:background="@android:drawable/btn_default_small"
                 android:gravity="center_vertical|center_horizontal"
                 android:onClick="changeCameraClick"
-                android:text="@string/toFrontCamera" />
+                android:layout_marginStart="20dp"
+                android:text="@string/toFrontCamera"
+                />
+
 
             <Button
                 android:id="@+id/turnLight"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="35dp"
                 android:layout_weight="1"
                 android:background="@android:drawable/btn_default_small"
                 android:gravity="center_vertical|center_horizontal"
                 android:onClick="turnLightClick"
+                android:layout_marginStart="50dp"
                 android:text="@string/lightOn" />
 
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="5dp">
 
+
+            <TextView
+                android:id="@+id/textView5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="20dp"
+                android:text="@string/method" />
+
+            <RadioButton
+                android:id="@+id/rbAveraged"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:checked="true"
+                android:onClick="averagedMethodClick"
+                android:text="@string/methodAveraged" />
+
+            <RadioButton
+                android:id="@+id/rbDominant"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="dominantMethodClick"
+                android:text="@string/methodDominant" />
+        </LinearLayout>
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="5dp">
+            android:padding="5dp"
+            android:layout_marginTop="10dp"
+            >
 
             <TableRow
                 android:layout_width="match_parent"
@@ -148,11 +185,13 @@
 
         </TableLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="5dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="5dp"
+            android:layout_marginTop="30dp"
+            >
 
         <TextView
             android:id="@+id/textView"
@@ -160,7 +199,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:gravity="center"
-            android:singleLine="false"
+            android:singleLine="true"
+            android:textSize="18sp"
+            android:layout_marginStart="10dp"
             android:text="@string/nearestName" />
 
         <TextView
@@ -170,46 +211,15 @@
             android:layout_gravity="center"
             android:layout_marginStart="10dp"
             android:layout_weight="1"
-            android:background="@android:color/white"
             android:gravity="start|center_vertical"
             android:text="@string/none"
             android:textColor="@android:color/black"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="5dp">
 
-
-            <TextView
-                android:id="@+id/textView5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/method" />
-
-            <RadioButton
-                android:id="@+id/rbAveraged"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:checked="true"
-                android:onClick="averagedMethodClick"
-                android:text="@string/methodAveraged" />
-
-            <RadioButton
-                android:id="@+id/rbDominant"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:onClick="dominantMethodClick"
-                android:text="@string/methodDominant" />
-        </LinearLayout>
     </LinearLayout>
 
 

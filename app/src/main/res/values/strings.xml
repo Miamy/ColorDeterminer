@@ -7,7 +7,7 @@
     <string name="picked">Picked color</string>
     <string name="averaged">Processed</string>
     <string name="nearest">Nearest</string>
-    <string name="nearestName">Name</string>
+    <string name="nearestName">Name is:  </string>
     <string name="method">Method</string>
     <string name="methodAveraged">Averaged</string>
     <string name="methodDominant">Dominant</string>
