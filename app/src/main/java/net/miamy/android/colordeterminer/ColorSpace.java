@@ -71,7 +71,7 @@ class ColorPair
         return Math.abs(blue1 - blue) <= aPrecision && Math.abs(red1 - red) <= aPrecision && Math.abs(green1 - green) <= aPrecision;
     }
 
-    int GetDifference(int aColor)
+    double GetDifference(int aColor)
     {
         if (aColor == color)
             return 0;
@@ -79,7 +79,16 @@ class ColorPair
         int blue1 = Color.blue(aColor);
         int red1 = Color.red(aColor);
         int green1 = Color.green(aColor);
-        return Math.abs(blue1 - blue) + Math.abs(red1 - red) + Math.abs(green1 - green);
+//        //return Math.abs(blue1 - blue) + Math.abs(red1 - red) + Math.abs(green1 - green);
+//        int max1 = Math.max(Math.abs(blue1 - blue), Math.abs(red1 - red));
+//        return Math.max(max1, Math.abs(green1 - green));
+        // compute the Euclidean distance between the two colors
+        // note, that the alpha-component is not used in this example
+        double dbl_test_red = Math.pow(red - red1, 2.0);
+        double dbl_test_green = Math.pow(green - green1, 2.0);
+        double dbl_test_blue = Math.pow(blue - blue1, 2.0);
+
+        return dbl_test_blue + dbl_test_green + dbl_test_red;
     }
 }
 
@@ -146,48 +155,41 @@ class ColorSpace
         }
     }
 
-    ColorPair Find(int aColor, int aPrecision)
+    ColorPair Find(int aColor)
     {
-        /*int currPrecision = 0;
-        while (currPrecision <= aPrecision)
-        {
-            for (int i = 0; i < list.size(); i++)
-            {
-                ColorPair pair = list.get(i);
-                if (pair.IsEqual(aColor, currPrecision))
-                {
-                    return pair;
-                }
-            }
-            currPrecision++;
-        }*/
-
-        //ArrayList<ColorPair, int> founded = new ArrayList<>();
-        final List<HashMap<ColorPair, Integer>> colorMap = new ArrayList<>();
         ColorPair currPair = null;
-        int currPrecision = 100000000;
+        double currPrecision = 100000000;
+//        for (int i = 0; i < list.size(); i++)
+//        {
+//            ColorPair pair = list.get(i);
+//            int diff = pair.GetDifference(aColor);
+//            if (diff <= aPrecision)
+//            {
+//                if (diff < currPrecision)
+//                {
+//                    currPair = pair;
+//                    currPrecision = diff;
+//                }
+//            }
+//        }
+        //return currPair;
+
         for (int i = 0; i < list.size(); i++)
         {
             ColorPair pair = list.get(i);
-            int diff = pair.GetDifference(aColor);
-            if (diff <= aPrecision)
+            double diff = pair.GetDifference(aColor);
+            if(diff == 0.0)
             {
-                //HashMap<ColorPair, Integer> h = new HashMap<>();
-                //h.put(pair, diff);
-                //colorMap.add(h);
-                if (diff < currPrecision)
-                {
-                    currPair = pair;
-                    currPrecision = diff;
-                }
+                currPair = pair;
+                break;
+            }
+            else if (diff < currPrecision)
+            {
+                currPrecision = diff;
+                currPair = pair;
             }
         }
         return currPair;
-    }
-
-    public ColorPair Find(int aColor)
-    {
-        return Find(aColor, 0);
     }
 
     int Length()

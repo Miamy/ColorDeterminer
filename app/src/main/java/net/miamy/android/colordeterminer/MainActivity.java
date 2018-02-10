@@ -44,13 +44,12 @@ import android.widget.TextView;
 import static android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK;
 import static android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT;
 
-public class MainActivity extends Activity
-{
+public class MainActivity extends Activity implements Camera.PreviewCallback, SurfaceHolder.Callback
+        {
     private ColorSpace colorSpace;
     private SurfaceView sv;
     private SurfaceHolder holder;
     private LayoutView transparentView;
-    private Camera.PreviewCallback previewCallback;
 
     private Camera camera;
     private ImageView previewImage;
@@ -73,9 +72,8 @@ public class MainActivity extends Activity
     private RadioButton rbAveraged;
     private RadioButton rbDominant;
 
-    private SeekBar sbTolerance;
-
     private int counter = 0;
+    private int oldAvgColor = 0;
     final int MaxPrecision = 30;
     final int clipSize = 10;
 
@@ -136,11 +134,7 @@ public class MainActivity extends Activity
 
         holder = sv.getHolder();
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-
-        HolderCallback holderCallback = new HolderCallback();
-        holder.addCallback(holderCallback);
-
-        previewCallback = new PreviewCallback();
+        holder.addCallback(this);
 
         LoadSettings();
         //setDrawable();
@@ -245,7 +239,6 @@ public class MainActivity extends Activity
 
         surfaceParent = findViewById(R.id.surfaceParent);
         controlsParent = findViewById(R.id.controlsParent);
-        sbTolerance = findViewById(R.id.sbTolerance);
         transparentView = (LayoutView) findViewById(R.id.TransparentView);
 
     }
@@ -258,14 +251,12 @@ public class MainActivity extends Activity
         boolean method = preferences.getBoolean("method", true);
         rbAveraged.setChecked(method);
         rbDominant.setChecked(!method);
-        sbTolerance.setProgress(preferences.getInt("Tolerance", 10));
     }
     private void SaveSettings()
     {
         SharedPreferences.Editor ed = preferences.edit();
         ed.putInt("currCamera", currCamera );
         ed.putBoolean("method", rbAveraged.isChecked());
-        ed.putInt("Tolerance", sbTolerance.getProgress());
         ed.commit();
     }
 
@@ -333,7 +324,7 @@ public class MainActivity extends Activity
         camera.release();
         currCamera = currCamera == CAMERA_FACING_BACK ? CAMERA_FACING_FRONT : CAMERA_FACING_BACK;
         camera = Camera.open(currCamera);
-        camera.setPreviewCallback(previewCallback);
+        camera.setPreviewCallback(this);
         setCameraDisplayOrientation(currCamera);
         try
         {
@@ -365,120 +356,6 @@ public class MainActivity extends Activity
     public void averagedMethodClick(View view)
     {
         rbDominant.setChecked(false);
-    }
-
-    class HolderCallback implements SurfaceHolder.Callback {
-
-        @Override
-        public void surfaceCreated(SurfaceHolder holder) {
-        }
-
-        @Override
-        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
-        {
-            camera.stopPreview();
-            setCameraDisplayOrientation(currCamera);
-            try
-            {
-                camera.setPreviewDisplay(holder);
-                //Camera.Parameters params = camera.getParameters();
-                //params.setPictureFormat(ImageFormat.JPEG);
-                //List<Integer> formats = params.getSupportedPictureFormats();
-                //for (int i = 0; i<formats.size(); i++)
-                // {
-                //    Log.d("colordeterminer", String.valueOf(formats.get(i)));
-                //}
-                //camera.setParameters(params);
-                camera.setPreviewCallback(previewCallback);
-                camera.startPreview();
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public void surfaceDestroyed(SurfaceHolder holder) {
-
-        }
-
-    }
-
-    class PreviewCallback implements Camera.PreviewCallback
-    {
-        @Override
-        public void onPreviewFrame(byte[] data, Camera camera)
-        {
-            counter++;
-            int maxCounter = 5;
-            if (counter != maxCounter)
-                return;
-            try
-            {
-                counter = 0;
-                Camera.Parameters parameters = camera.getParameters();
-                int width = parameters.getPreviewSize().width;
-                int height = parameters.getPreviewSize().height;
-
-                YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), width, height, null);
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                yuv.compressToJpeg(new Rect(0, 0, width, height), 50, out);
-
-                byte[] bytes = out.toByteArray();
-                Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                if (bmp == null)
-                    return;
-
-                width = bmp.getWidth();
-                height = bmp.getHeight();
-//                int angle = getRotationAngle(currCamera);
-//                Matrix matrix = new Matrix();
-//                matrix.postRotate(angle);
-                //Bitmap rotated/*bmp*/ =
-                 bmp =
-                        Bitmap.createBitmap (bmp,(width) / 2 - clipSize, (height ) / 2  - clipSize, 2 * clipSize, 2 * clipSize);
-                        //Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
-
-                int angle = getRotationAngle(currCamera);
-                Matrix matrix = new Matrix();
-                matrix.postRotate(angle);
-                Bitmap
-                        rotated = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
-                previewImage.setImageBitmap(rotated);
-
-                width = rotated.getWidth();
-                height = rotated.getHeight();
-                int[] centerPixels = new int[4 * clipSize * clipSize];
-                rotated.getPixels(centerPixels, 0, width, 0, 0, width, height);
-//                BitmapHelper.getBitmapPixels(bmp, width / 2 - DeltaPixels, height / 2  - DeltaPixels, 2 * DeltaPixels, 2 * DeltaPixels);
-
-                int avgColor;
-                if (rbAveraged.isChecked())
-                {
-                    avgColor = BitmapHelper.getAveragedColor(centerPixels);
-                }
-                else
-                {
-                    avgColor = BitmapHelper.getDominantColor(centerPixels);
-                }
-                averagedColor.setBackgroundColor(avgColor);
-
-                foundColor.setBackgroundColor(0);
-                foundColorName.setText("no color");
-                ColorPair foundedColor = colorSpace.Find(avgColor, sbTolerance.getProgress());
-                if (foundedColor == null)
-                    return;
-                foundColor.setBackgroundColor(foundedColor.getColor());
-                foundColorName.setText(foundedColor.getName());
-//                Log.d("colordeterminer", "onPreviewFrame: avg = " + avgColor + ", founded = " + foundedColor.getColor() + ",  " +
-//                        foundedColor.getName());
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-        }
     }
 
     private void setPreviewSize(boolean fullScreen)
@@ -604,4 +481,109 @@ public class MainActivity extends Activity
 
         return result % 360;
     }
+
+    //region Camera.PreviewCallback
+            @Override
+            public void onPreviewFrame(byte[] data, Camera camera)
+            {
+                counter++;
+                int maxCounter = 5;
+                if (counter != maxCounter)
+                    return;
+                try
+                {
+                    counter = 0;
+                    Camera.Parameters parameters = camera.getParameters();
+                    int width = parameters.getPreviewSize().width;
+                    int height = parameters.getPreviewSize().height;
+
+                    YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), width, height, null);
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    yuv.compressToJpeg(new Rect(0, 0, width, height), 50, out);
+
+                    byte[] bytes = out.toByteArray();
+                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                    if (bmp == null)
+                        return;
+
+                    width = bmp.getWidth();
+                    height = bmp.getHeight();
+                    int angle = getRotationAngle(currCamera);
+                    Matrix matrix = new Matrix();
+                    matrix.postRotate(angle);
+                    Bitmap rotated = Bitmap.createBitmap (bmp,(width) / 2 - clipSize, (height ) / 2  - clipSize, 2 * clipSize, 2 * clipSize, matrix, true);
+
+                    previewImage.setImageBitmap(rotated);
+
+                    width = 2 * clipSize;
+                    height = 2 * clipSize;
+                    int[] centerPixels = new int[width * height];
+                    rotated.getPixels(centerPixels, 0, width, 0, 0, width, height);
+
+                    int avgColor;
+                    if (rbAveraged.isChecked())
+                    {
+                        avgColor = BitmapHelper.getAveragedColor(centerPixels);
+                    }
+                    else
+                    {
+                        avgColor = BitmapHelper.getDominantColor(centerPixels);
+                    }
+                    if (oldAvgColor == avgColor)
+                        return;
+
+                    oldAvgColor = avgColor;
+                    averagedColor.setBackgroundColor(avgColor);
+
+                    foundColor.setBackgroundColor(0);
+                    foundColorName.setText("no color");
+                    ColorPair foundedColor = colorSpace.Find(avgColor);
+                    if (foundedColor == null)
+                        return;
+                    foundColor.setBackgroundColor(foundedColor.getColor());
+                    foundColorName.setText(foundedColor.getName());
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+            //endregion
+
+    //region SurfaceHolder.Callback
+            @Override
+            public void surfaceCreated(SurfaceHolder holder)
+            {
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
+            {
+                camera.stopPreview();
+                setCameraDisplayOrientation(currCamera);
+                try
+                {
+                    camera.setPreviewDisplay(holder);
+                    //Camera.Parameters params = camera.getParameters();
+                    //params.setPictureFormat(ImageFormat.JPEG);
+                    //List<Integer> formats = params.getSupportedPictureFormats();
+                    //for (int i = 0; i<formats.size(); i++)
+                    // {
+                    //    Log.d("colordeterminer", String.valueOf(formats.get(i)));
+                    //}
+                    //camera.setParameters(params);
+                    camera.setPreviewCallback(this);
+                    camera.startPreview();
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder)
+            {
+            }
+            //endregion
 }
