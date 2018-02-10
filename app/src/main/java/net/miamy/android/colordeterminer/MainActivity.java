@@ -38,11 +38,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import static android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK;
 import static android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+import static android.widget.RelativeLayout.ALIGN_PARENT_END;
+import static android.widget.RelativeLayout.BELOW;
 
 public class MainActivity extends Activity implements Camera.PreviewCallback, SurfaceHolder.Callback
         {
@@ -56,8 +58,6 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
 
     private boolean lightOn = false;
     private int currCamera = 0;
-
-    private final boolean FULL_SCREEN = true;
 
     private AbsoluteLayout surfaceParent;
     private LinearLayout controlsParent;
@@ -91,7 +91,7 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         boolean hasCamera = getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
         if (!hasCamera)
         {
-            showDialog("Camera not found.");
+            showDialog(getString(R.string.camera_not_found));
             finish();
         }
 
@@ -99,17 +99,6 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, MY_PERMISSIONS_REQUEST_CAMERA);
         }
-        else
-        {
-        }
-        /*String[] files =new String[1];
-        try {
-            files = getAssets().list("/");
-            InputStream is = getAssets().open("colors.txt");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Log.d("colordeterminer2", files.toString());*/
 
         InputStream raw = getResources().openRawResource(R.raw.colors_wiki);
         colorSpace = ColorSpace.getInstance();
@@ -137,7 +126,6 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         holder.addCallback(this);
 
         LoadSettings();
-        //setDrawable();
         camerasButton.setText(currCamera == CAMERA_FACING_FRONT ? R.string.toBackCamera: R.string.toFrontCamera);
         transparentView.setDelta(clipSize);
 
@@ -154,7 +142,7 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
     {
         super.onResume();
         camera = Camera.open(currCamera);
-        setPreviewSize(FULL_SCREEN);
+        setPreviewSize();
 
         setControlsEnabled();
     }
@@ -166,12 +154,9 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         {
             case MY_PERMISSIONS_REQUEST_CAMERA:
             {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED)
                 {
-                }
-                else
-                {
-                    showDialog("Camera not accessible.");
+                    showDialog(getString(R.string.camera_not_accessible));
                     finish();
                 }
             }
@@ -179,9 +164,11 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
     }
 
     @Override
-    protected void onPause() {
+    protected void onPause()
+    {
         super.onPause();
-        if (camera != null) {
+        if (camera != null)
+        {
             lightOff();
             camera.release();
         }
@@ -192,19 +179,13 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
     {
         super.onConfigurationChanged(newConfig);
 
-        RelativeLayout.LayoutParams params= new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        if (newConfig.screenHeightDp > newConfig.screenWidthDp)
-        {
-            //params.removeRule(RelativeLayout.RIGHT_OF);
-            params.addRule(RelativeLayout.BELOW, R.id.surfaceParent);
-        }
-        else
-        {
-            //params.removeRule(RelativeLayout.BELOW);
-            params.addRule(RelativeLayout.ALIGN_PARENT_END, R.id.surfaceParent);
-        }
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
+        int where = (newConfig.screenHeightDp > newConfig.screenWidthDp) ? BELOW : ALIGN_PARENT_END;
+        params.addRule(where, R.id.surfaceParent);
         controlsParent.setLayoutParams(params);
+
         setCameraDisplayOrientation(currCamera);
+        setPreviewSize();
     }
 
     protected void onRestoreInstanceState(Bundle savedInstanceState)
@@ -319,9 +300,12 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
     public void changeCameraClick(View view)
     {
         lightOff();
-        camera.stopPreview();
-        camera.setPreviewCallback(null);
-        camera.release();
+        if (camera != null)
+        {
+            camera.stopPreview();
+            camera.setPreviewCallback(null);
+            camera.release();
+        }
         currCamera = currCamera == CAMERA_FACING_BACK ? CAMERA_FACING_FRONT : CAMERA_FACING_BACK;
         camera = Camera.open(currCamera);
         camera.setPreviewCallback(this);
@@ -334,7 +318,7 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         {
             e.printStackTrace();
         }
-        setPreviewSize(FULL_SCREEN);
+        setPreviewSize();
         camera.startPreview();
 
         camerasButton.setText(currCamera == CAMERA_FACING_FRONT ? R.string.toBackCamera: R.string.toFrontCamera);
@@ -358,29 +342,30 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         rbDominant.setChecked(false);
     }
 
-    private void setPreviewSize(boolean fullScreen)
+    private void setPreviewSize()
     {
         Display display = getWindowManager().getDefaultDisplay();
-//        boolean widthIsMax = display.getWidth() > display.getHeight();
 
         DisplayMetrics metrics = new DisplayMetrics();
         display.getMetrics(metrics);
 
         int width;
         int height;
-        final int Dimension = 950;
+        final int Dimension;
 
         if (metrics.heightPixels > metrics.widthPixels)
         {
             width = metrics.widthPixels;
-            //height = metrics.heightPixels - Dimension;
-            height = metrics.heightPixels / 2;
+            Dimension = 850;
+            height = metrics.heightPixels - Dimension;
+            //height = metrics.heightPixels / 2;
         }
         else
         {
             height = metrics.heightPixels;
-            //width = metrics.widthPixels - Dimension;
-            width = metrics.widthPixels / 2;
+            Dimension = 1000;
+            width = metrics.widthPixels - Dimension;
+            //width = metrics.widthPixels / 2;
         }
         surfaceParent.getLayoutParams().height = height;
         surfaceParent.getLayoutParams().width = width;
@@ -411,23 +396,13 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         }
 
         Matrix matrix = new Matrix();
-        // подготовка матрицы преобразования
-        if (!fullScreen) {
-            // если превью будет "втиснут" в экран (второй вариант из урока)
-            matrix.setRectToRect(rectPreview, rectDisplay,
-                    Matrix.ScaleToFit.CENTER);
-        } else {
-            // если экран будет "втиснут" в превью (третий вариант из урока)
-            matrix.setRectToRect(rectDisplay, rectPreview,
-                    Matrix.ScaleToFit.CENTER);
-            matrix.invert(matrix);
-        }
+        matrix.setRectToRect(rectDisplay, rectPreview, Matrix.ScaleToFit.CENTER);
+        matrix.invert(matrix);
         matrix.mapRect(rectPreview);
-
 
         sv.getLayoutParams().height = (int) rectPreview.height(); //(int) rectPreview.bottom;
         sv.getLayoutParams().width = (int) rectPreview.right;
-        //sv.setX(rectPreview.left);
+        sv.setX(rectPreview.left);
         sv.setY(rectPreview.top);
         //transparentView.getLayoutParams().height = (int) (rectPreview.bottom);
         //transparentView.getLayoutParams().width = (int) (rectPreview.right);
@@ -536,7 +511,7 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
                     averagedColor.setBackgroundColor(avgColor);
 
                     foundColor.setBackgroundColor(0);
-                    foundColorName.setText("no color");
+                    foundColorName.setText(getString(R.string.no_color));
                     ColorPair foundedColor = colorSpace.Find(avgColor);
                     if (foundedColor == null)
                         return;

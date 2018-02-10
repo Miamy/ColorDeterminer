@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Color determiner</string>
+    <string name="app_name">Color Determiner</string>
     <string name="toBackCamera">Switch to back</string>
     <string name="toFrontCamera">Switch to front</string>
     <string name="lightOn">Turn light on</string>
@@ -13,9 +13,10 @@
     <string name="methodDominant">Dominant</string>
     <string name="tolerance">Tolerance</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="none">-</string>
     <string name="todo">TODO</string>
+    <string name="no_color">no color</string>
+    <string name="camera_not_accessible">Camera not accessible.</string>
+    <string name="camera_not_found">Camera not found.</string>
 </resources>
 

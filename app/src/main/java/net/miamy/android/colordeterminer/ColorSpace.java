@@ -13,8 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by Miamy on 03.02.2018.
@@ -36,7 +34,7 @@ class ColorPair
 
     public ColorPair(String aLine)
     {
-        Log.d("colordeterminer", "ColorPair: " + aLine);
+//        Log.d("colordeterminer", "ColorPair: " + aLine);
         String[] tokens = aLine.split("=");
         name = tokens[0].trim();
         setColor(Color.parseColor(tokens[1].trim()));
@@ -159,20 +157,6 @@ class ColorSpace
     {
         ColorPair currPair = null;
         double currPrecision = 100000000;
-//        for (int i = 0; i < list.size(); i++)
-//        {
-//            ColorPair pair = list.get(i);
-//            int diff = pair.GetDifference(aColor);
-//            if (diff <= aPrecision)
-//            {
-//                if (diff < currPrecision)
-//                {
-//                    currPair = pair;
-//                    currPrecision = diff;
-//                }
-//            }
-//        }
-        //return currPair;
 
         for (int i = 0; i < list.size(); i++)
         {
