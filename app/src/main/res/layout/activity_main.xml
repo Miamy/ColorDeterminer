@@ -2,7 +2,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#ace5ee"
+    >
 
     <AbsoluteLayout
         android:id="@+id/surfaceParent"
@@ -101,7 +103,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="5dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="0dp"
             >
 
             <TableRow
@@ -185,42 +187,42 @@
 
         </TableLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="5dp"
-            android:layout_marginTop="30dp"
-            >
 
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:gravity="center"
-            android:singleLine="true"
-            android:textSize="18sp"
-            android:layout_marginStart="10dp"
-            android:text="@string/nearestName" />
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="5dp"
+                >
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="10dp"
+                android:gravity="center"
+                android:singleLine="true"
+                android:text="@string/nearestName"
+                android:textSize="16sp" />
 
-        <TextView
-            android:id="@+id/foundColorName"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginStart="10dp"
-            android:layout_weight="1"
-            android:gravity="start|center_vertical"
-            android:text="@string/none"
-            android:textColor="@android:color/black"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            <TextView
+                android:id="@+id/foundColorName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:layout_weight="1"
+                android:layout_toEndOf="@+id/textView"
+                android:gravity="start|center_vertical"
+                android:text="@string/none"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-        </LinearLayout>
-
+        </RelativeLayout>
 
     </LinearLayout>
+
 
 
 </RelativeLayout>

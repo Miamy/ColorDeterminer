@@ -21,23 +21,19 @@ class ColorPair
 {
     private int color;
     private final String name;
+    private final String code;
 
     private int blue;
     private int red;
     private int green;
-
-    public ColorPair(int aColor, String aName)
-    {
-        name = aName;
-        setColor(aColor);
-    }
 
     public ColorPair(String aLine)
     {
 //        Log.d("colordeterminer", "ColorPair: " + aLine);
         String[] tokens = aLine.split("=");
         name = tokens[0].trim();
-        setColor(Color.parseColor(tokens[1].trim()));
+        code = tokens[1].trim();
+        setColor(Color.parseColor(code));
     }
 
     public void setColor(int aColor)
@@ -55,6 +51,9 @@ class ColorPair
 
     public String getName() {
         return name;
+    }
+    public String getCode() {
+        return code;
     }
 
     boolean IsEqual(int aColor, int aPrecision)

@@ -279,13 +279,14 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         final List<String> flashModes = camera.getParameters().getSupportedFlashModes();
 
         boolean lightDisabled = true;
-        for (int i = 0; i < flashModes.size(); i++)
+        if (flashModes != null)
         {
-            String mode = flashModes.get(i);
-            if (mode.compareTo("torch") == 0)
-            {
-                lightDisabled = false;
-                break;
+            for (int i = 0; i < flashModes.size(); i++) {
+                String mode = flashModes.get(i);
+                if (mode.compareTo("torch") == 0) {
+                    lightDisabled = false;
+                    break;
+                }
             }
         }
 
@@ -353,6 +354,16 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         rbDominant.setChecked(false);
     }
 
+    private void setAntibanding()
+    {
+        Camera.Parameters parameters = camera.getParameters();
+        if (parameters != null)
+        {
+            parameters.setAntibanding(Camera.Parameters.ANTIBANDING_AUTO);
+            camera.setParameters(parameters);
+        }
+    }
+
     private void setPreviewSize()
     {
         Display display = getWindowManager().getDefaultDisplay();
@@ -363,17 +374,23 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         int height;
         final int Dimension;
 
+        int wrapSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+        controlsParent.measure(wrapSpec, wrapSpec);
+
         if (metrics.heightPixels > metrics.widthPixels)
         {
             width = metrics.widthPixels;
-            Dimension = 850;
+            //Dimension = 850;
+            Dimension = controlsParent.getMeasuredHeight() + 80;
+
             height = metrics.heightPixels - Dimension;
             //height = metrics.heightPixels / 2;
         }
         else
         {
             height = metrics.heightPixels;
-            Dimension = 1000;
+            //Dimension = 1000;
+            Dimension = controlsParent.getMeasuredWidth() + 8;
             width = metrics.widthPixels - Dimension;
             //width = metrics.widthPixels / 2;
         }
@@ -395,7 +412,7 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
 
         rectDisplay.set(0, 0, width, height);
 
-        if (widthIsMax)
+        if (!widthIsMax)
         {
             //noinspection SuspiciousNameCombination
             rectPreview.set(0, 0, size.height, size.width);
@@ -403,6 +420,7 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         else
         {
             rectPreview.set(0, 0, size.width, size.height);
+            //rectPreview.set(0, 0, size.height, size.width);
         }
 
         Matrix matrix = new Matrix();
@@ -414,10 +432,8 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
         sv.getLayoutParams().width = (int) rectPreview.width();
         sv.setX(rectPreview.left);
         sv.setY(rectPreview.top);
-        //transparentView.getLayoutParams().height = (int) (rectPreview.bottom);
-        //transparentView.getLayoutParams().width = (int) (rectPreview.right);
-        //transparentView.setX(rectPreview.left);
-        //transparentView.setY(rectPreview.top);
+
+        setAntibanding();
     }
 
     private void setCameraDisplayOrientation(int cameraId)
@@ -471,6 +487,9 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
             @Override
             public void onPreviewFrame(byte[] data, Camera camera)
             {
+                if (camera == null)
+                    return;
+
                 counter++;
                 int maxCounter = 5;
                 if (counter != maxCounter)
@@ -526,7 +545,7 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
                     if (foundedColor == null)
                         return;
                     foundColor.setBackgroundColor(foundedColor.getColor());
-                    foundColorName.setText(foundedColor.getName());
+                    foundColorName.setText(foundedColor.getName() + " (" + foundedColor.getCode() + ")");
                 }
                 catch (Exception e)
                 {
@@ -544,19 +563,13 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
             {
+                if (camera == null)
+                    return;
                 camera.stopPreview();
                 setCameraDisplayOrientation(currCamera);
                 try
                 {
                     camera.setPreviewDisplay(holder);
-                    //Camera.Parameters params = camera.getParameters();
-                    //params.setPictureFormat(ImageFormat.JPEG);
-                    //List<Integer> formats = params.getSupportedPictureFormats();
-                    //for (int i = 0; i<formats.size(); i++)
-                    // {
-                    //    Log.d("colordeterminer", String.valueOf(formats.get(i)));
-                    //}
-                    //camera.setParameters(params);
                     camera.setPreviewCallback(this);
                     camera.startPreview();
                 }
