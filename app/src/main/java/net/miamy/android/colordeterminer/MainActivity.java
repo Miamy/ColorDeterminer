@@ -412,7 +412,7 @@ public class MainActivity extends Activity implements Camera.PreviewCallback, Su
 
         rectDisplay.set(0, 0, width, height);
 
-        if (!widthIsMax)
+        if (metrics.heightPixels > metrics.widthPixels)
         {
             //noinspection SuspiciousNameCombination
             rectPreview.set(0, 0, size.height, size.width);
